@@ -1,0 +1,45 @@
+import tkinter as tk
+from tkinter import filedialog
+from PIL import ImageTk, Image
+import numpy as np
+from tensorflow.keras.models import load_model
+
+# Load the trained model
+model = load_model('breast_cancer_model.h5')
+
+# Function to open the image file
+def open_image():
+    file_path = filedialog.askopenfilename(filetypes=[("Image files", "*.png;*.jpg;*.jpeg")])
+    if file_path:
+        img = Image.open(file_path)
+        img = img.resize((64, 64))
+        img_array = np.array(img)
+        img_array = np.expand_dims(img_array, axis=0)
+        img_array = img_array.astype('float32') / 255.0
+        pred = model.predict(img_array)
+        threshold = 0.5
+        class_label = "Not Cancer" if pred[0][0] >= threshold else "Cancer"
+        result_label.config(text=f"The given image is predicted as: {class_label}")
+        img = ImageTk.PhotoImage(img)
+        image_label.configure(image=img)
+        image_label.image = img
+
+# Create the main window
+window = tk.Tk()
+window.title("Breast Cancer Prediction")
+window.geometry("400x400")
+
+# Create image label
+image_label = tk.Label(window)
+image_label.pack(pady=10)
+
+# Create button to open the image
+open_button = tk.Button(window, text="Open Image", command=open_image)
+open_button.pack(pady=10)
+
+# Create label to display the prediction result
+result_label = tk.Label(window, text="")
+result_label.pack(pady=10)
+
+# Run the GUI main loop
+window.mainloop()
